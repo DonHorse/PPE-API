@@ -6,11 +6,11 @@ const app = express();
 const mysql = require("mysql");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-//const cookieParser = require("cookie-parser");
-//const session = require("express-session");
-//const bcrypt = require("bcrypt");
-//const saltRounds = 10;
-//const nodemailer = require("nodemailer");
+const cookieParser = require("cookie-parser");
+const session = require("express-session");
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
+
 
 
 // Paramétrages server
@@ -21,21 +21,21 @@ app.use(cors({
         credentials: true,
     }
 ));
-//app.use(cookieParser());
+app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-//session
-// app.use(
-//     session({
-//         key: "userId",
-//         secret: "horse",
-//         resave: false,
-//         saveUninitialized: false,
-//         cookie: {
-//             expires: 60 * 60 * 24 * 7,
-//         },
-//     })
-// );
+session
+app.use(
+    session({
+        key: "userId",
+        secret: "horse",
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+            expires: 60 * 60 * 24 * 7,
+        },
+    })
+);
 
 // Connexion à mysql
 const db = mysql.createPool({
@@ -45,136 +45,13 @@ const db = mysql.createPool({
     database:"ppe2-dipss",
 });
 
-// Connexion à la boite mail d'envoie et reception
-// const contactEmail = nodemailer.createTransport({
-//     service: 'gmail',
-//     auth: {
-//         user: "promeo.langue.dev@gmail.com",
-//         pass: "Promeo/60",
-//     },
-//     tls: {
-//         rejectUnauthorized: false
-//     }
-// });
-// Vérification de l'envoi des mail
-// contactEmail.verify((error) => {
-//     if (error) {
-//         console.log(error);
-//     } else {
-//         console.log("Ready to Send");
-//     }
-// });
+
 
 // -------------------------------------------------CRUD---------------------------------------------------------------
 
 // --------------------------------------------CREATE / POST-----------------------------------------------------------
 
-app.post("/questionnaireSend", (req, res) => {
-    const name = req.body.Nom;
-    const firstname = req.body.Prenom;
-    const email = req.body.Mail;
-    const score = req.body.score;
-    const count = req.body.count;
-    const correctorMail = req.body.CorrectorMail;
-    const mail = {
-        from: name,
-        to: correctorMail,
-        subject: "Promeo Langue - Correction message",
-        html: `<p>Mme/Mr ${name} ${firstname}</p>
-           <p>Adresse mail :  ${email}</p>
-           <p> A soumis un questionnaire avec un résultat de ${score} sur ${count}</p>`,
-        attachments: [{
-
-        }]
-    };
-    contactEmail.sendMail(mail, (error) => {
-        if (error) {
-            res.json({ status: "ERROR" });
-        } else {
-            res.json({ status: "Message Sent" });
-        }
-    });
-});
-
-app.post("/contact", (req, res) => {
-    const name = req.body.name;
-    const email = req.body.email;
-    const message = req.body.message;
-    const mail = {
-        from: name,
-        to: "promeo.langue.dev@gmail.com",
-        subject: "Promeo Langue - Contact message",
-        html: `<p>Mme/Mr ${name}</p>
-           <p>Depuis l'adresse :  ${email}</p>
-           <p>A laissé le message suivant: ${message}</p>`,
-    };
-    contactEmail.sendMail(mail, (error) => {
-        if (error) {
-            res.json({ status: "ERROR" });
-        } else {
-            res.json({ status: "Message Sent" });
-        }
-    });
-});
-
-
-app.post("/api/newArticle", (req, res) => {
-    const title = req.body.title;
-    const img = req.body.img;
-    const text = req.body.text;
-
-    db.query(
-        "INSERT INTO articles (title, img, text) VALUES (?,?,?)",
-        [title, img, text],
-        (err, result) => {
-            if (err) {
-                console.log(err);
-            } else {
-                res.send("Ajouté !");
-            }
-        });
-});
-
-app.post("/api/newQuestionForm", (req, res) => {
-    const name = req.body.formname;
-    const language = req.body.language;
-    const creatorName = req.body.creatorName;
-    const creatorMail = req.body.creatorMail;
-
-    db.query(
-        "INSERT INTO questionnaires (name, language, creator_name, creator_mail) VALUES (?,?,?,?)",
-        [name, language, creatorName, creatorMail],
-        (err, result) => {
-            if (err) {
-                console.log(err);
-            } else {
-                res.send("Ajouté !");
-            }
-        });
-});
-
-app.post("/api/newQuestion", (req, res) => {
-    const question = req.body.question;
-    const reponse1 = req.body.reponse1;
-    const reponse2 = req.body.reponse2;
-    const reponse3 = req.body.reponse3;
-    const reponse4 = req.body.reponse4;
-    const correction = req.body.correction;
-    const Q_id = req.body.Qid;
-
-    db.query(
-        "INSERT INTO question_reponse (question, reponse_1, reponse_2, reponse_3, reponse_4, correct, questionnaire_id) VALUES (?,?,?,?,?,?,?)",
-        [question, reponse1, reponse2, reponse3, reponse4, correction, Q_id],
-        (err, result) => {
-            if (err) {
-                console.log(err);
-            } else {
-                res.send("Ajouté !");
-            }
-        });
-});
-
-app.post("/register", (req, res) => {
+app.post("/DIPSS/register", (req, res) => {
     const firstname = req.body.firstname;
     const lastname = req.body.lastname;
     const email = req.body.email;
@@ -187,7 +64,7 @@ app.post("/register", (req, res) => {
         }
 
         db.query(
-            "INSERT INTO user (FirstName, LastName, email, password, role) VALUES (?,?,?,?,?)",
+            "INSERT INTO user (first_name, last_name, email, password, role) VALUES (?,?,?,?,?)",
             [firstname, lastname, email, hash, role],
             (err, result) => {
                 console.log(err);
@@ -196,7 +73,7 @@ app.post("/register", (req, res) => {
     });
 });
 
-app.post("/login", (req, res) => {
+app.post("/DIPSS/login", (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
 
@@ -226,12 +103,12 @@ app.post("/login", (req, res) => {
     );
 });
 
+
+
+// ------------------------------------------------------READ / GET----------------------------------------------------
 app.get("/", (req, res) => {
     res.send('Server started')
 });
-
-// ------------------------------------------------------READ / GET----------------------------------------------------
-
 
 app.get("/api/getLastForm", (req, res) => {
     db.query("SELECT id FROM questionnaires ORDER BY creation_date DESC LIMIT 1",
@@ -303,7 +180,7 @@ app.get("/question/:Qid", (req, res) => {
         })
 });
 
-app.get("/login", (req, res) => {
+app.get("/DIPSS/login", (req, res) => {
     if (req.session.user) {
         res.send({ loggedIn: true, user: req.session.user });
     } else {
@@ -311,7 +188,7 @@ app.get("/login", (req, res) => {
     }
 });
 
-app.get('/logout',(req,res) => {
+app.get('/DIPSS/logout',(req,res) => {
     req.session.destroy();
     res.clearCookie("userId");
     res.send({ loggedIn: false });
