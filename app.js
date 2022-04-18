@@ -138,22 +138,32 @@ app.get('/DIPSS/logout',(req,res) => {
     res.send({ loggedIn: false });
 });
 
-app.get('/api/homeInfo', (req, res) => {
-    db.query("SELECT * FROM info_page", (err, result) => {
-        if (err) {
-            console.log(err);
-        } else {
-            res.send(result);
-        }
-    })
-})
+app.get('/DIPSS/profile', (req, res) => {
+
+    db.query(`SELECT * FROM profil WHERE id_user = '${req.body.userId}'`,
+        (err, result) => {
+            if (err){
+                console.log(err);
+            }else {
+                res.send(result);
+            }
+        })
+    });
+
 // -----------------------------------------------------UPDATE / PUT---------------------------------------------------
 
-app.put("/api/homeModif/title", (req, res) => {
-    const bodyTitle = req.body.bodyTitle;
+app.put("DIPSS/profile/update", (req, res) => {
+    const userId = req.body.userId;
+    const gender = req.body.gender;
+    const birthday = req.body.birthday;
+    const weight = req.body.weight;
+    const height = req.body.height;
+    const contraindication = req.body.contraindication;
+    const note = req.body.note;
+    const img = req.body.img;
 
-    db.query("UPDATE info_page SET bodyTitle = ? WHERE id = 1",
-        bodyTitle,
+    db.query("UPDATE profil SET gender = ?, birthday = ?, height = ?, weight = ?, contraindication = ?, note = ?, image = ? WHERE id_user = {userId}",
+        [gender,birthday,height,weight,contraindication,note,img],
         (err, result) => {
             if (err) {
                 console.log(err);
@@ -162,57 +172,6 @@ app.put("/api/homeModif/title", (req, res) => {
         });
 });
 
-app.put("/api/homeModif/body1", (req, res) => {
-    const body1 = req.body.body1;
-
-    db.query("UPDATE info_page SET body1 = ? WHERE id = 1",
-        body1,
-        (err, result) => {
-            if (err) {
-                console.log(err);
-            }else
-                res.send(result);
-        });
-});
-
-app.put("/api/homeModif/footer1", (req, res) => {
-    const footer1 = req.body.footer1;
-
-    db.query("UPDATE info_page SET footer1 = ? WHERE id = 1",
-        footer1,
-        (err, result) => {
-            if (err) {
-                console.log(err);
-            }else
-                res.send(result);
-        });
-});
-
-app.put("/api/homeModif/footer2", (req, res) => {
-    const footer2 = req.body.footer2;
-
-    db.query("UPDATE info_page SET footer2 = ? WHERE id = 1",
-        footer2,
-        (err, result) => {
-            if (err) {
-                console.log(err);
-            }else
-                res.send(result);
-        });
-});
-
-app.put("/api/homeModif/footer3", (req, res) => {
-    const footer3 = req.body.footer3;
-
-    db.query("UPDATE info_page SET footer3 = ? WHERE id = 1",
-        footer3,
-        (err, result) => {
-            if (err) {
-                console.log(err);
-            }else
-                res.send(result);
-        });
-});
 
 /* code pour mass change infos page:
 
