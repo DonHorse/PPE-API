@@ -24,7 +24,7 @@ app.use(cors({
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-session
+//session
 app.use(
     session({
         key: "userId",
@@ -58,20 +58,32 @@ app.post("/DIPSS/register", (req, res) => {
     const role = req.body.role;
     const password = req.body.password;
 
-    bcrypt.hash(password, saltRounds, (err, hash) => {
-        if (err) {
-            console.log(err);
-        }
-
-        db.query(
-            "INSERT INTO user (first_name, last_name, email, password, role) VALUES (?,?,?,?,?)",
-            [firstname, lastname, email, hash, role],
-            (err, result) => {
-                console.log(err);
-            }
-        );
+        db.query("SELECT * FROM user WHERE email = ?",
+            email,
+            (err, result1) => {
+            if (err) {
+                res.send({ message: "sql erreur" });
+            }if(result1.length != 0 ) {
+                console.log("doublon");
+                res.send({ message: "Utilisateur déjà enregistré" });
+            }else{
+                console.log("aucun");
+                bcrypt.hash(password, saltRounds, (err, hash) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                    db.query(
+                        "INSERT INTO user (first_name, last_name, email, password, role) VALUES (?,?,?,?,?)",
+                        [firstname, lastname, email, hash, role],
+                        (err, result) => {
+                            console.log(err);
+                            res.send({message : "L'utilisateur" + email + "est enregistré"})
+                        }
+                    );
+                });
+            }});
     });
-});
+
 
 app.post("/DIPSS/login", (req, res) => {
     const email = req.body.email;
@@ -110,75 +122,7 @@ app.get("/", (req, res) => {
     res.send('Server started')
 });
 
-app.get("/api/getLastForm", (req, res) => {
-    db.query("SELECT id FROM questionnaires ORDER BY creation_date DESC LIMIT 1",
-        (err, result) => {
-            if (err){
-                console.log(err);
-            }else {
-                res.send(result);
-            }
-        })
-});
 
-app.get("/articleLast", (req, res) => {
-    db.query("SELECT * FROM articles ORDER BY create_date DESC LIMIT 1",
-        (err, result) => {
-            if (err){
-                console.log(err);
-            }else {
-                res.send(result);
-            }
-        })
-});
-
-app.get("/articleList", (req, res) => {
-    db.query("SELECT * FROM articles ORDER BY create_date DESC",
-        (err, result) => {
-            if (err){
-                console.log(err);
-            }else {
-                res.send(result);
-            }
-        })
-});
-
-app.get("/questionnaireList", (req, res) => {
-    db.query("SELECT * FROM questionnaires ORDER BY creation_date DESC",
-        (err, result) => {
-            if (err){
-                console.log(err);
-            }else {
-                res.send(result);
-            }
-        })
-});
-
-app.get("/questionnaire/:Qid", (req, res) => {
-    const Qid = req.params.Qid;
-    db.query("SELECT * FROM questionnaires WHERE id = ?", Qid,
-        (err, result) => {
-            if (err){
-                console.log(err);
-            }else {
-                res.send(result);
-
-            }
-        })
-});
-
-app.get("/question/:Qid", (req, res) => {
-    const Qid = req.params.Qid;
-    db.query("SELECT * FROM question_reponse WHERE questionnaire_id = ?", Qid,
-        (err, result) => {
-            if (err){
-                console.log(err);
-            }else {
-                res.send(result);
-
-            }
-        })
-});
 
 app.get("/DIPSS/login", (req, res) => {
     if (req.session.user) {
