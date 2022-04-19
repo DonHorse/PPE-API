@@ -75,7 +75,7 @@ app.post("/DIPSS/register", (req, res) => {
                     db.query(
                         "INSERT INTO user (first_name, last_name, email, password, role) VALUES (?,?,?,?,?)",
                         [firstname, lastname, email, hash, role],
-                        (err, result) => {
+                        (err, res) => {
                             console.log(err);
                             res.send({message : "L'utilisateur" + email + "est enregistré"})
                         }
@@ -139,8 +139,9 @@ app.get('/DIPSS/logout',(req,res) => {
 });
 
 app.get('/DIPSS/profile', (req, res) => {
+    const userId = req.session.user[0].id;
 
-    db.query(`SELECT * FROM profil WHERE id_user = '${req.body.userId}'`,
+    db.query(`SELECT * FROM profil WHERE id_user = ?`,userId,
         (err, result) => {
             if (err){
                 console.log(err);
@@ -152,8 +153,8 @@ app.get('/DIPSS/profile', (req, res) => {
 
 // -----------------------------------------------------UPDATE / PUT---------------------------------------------------
 
-app.put("DIPSS/profile/update", (req, res) => {
-    const userId = req.body.userId;
+app.put("/DIPSS/profile/update", (req, res) => {
+    const userId = req.session.user[0].id;
     const gender = req.body.gender;
     const birthday = req.body.birthday;
     const weight = req.body.weight;
@@ -162,8 +163,8 @@ app.put("DIPSS/profile/update", (req, res) => {
     const note = req.body.note;
     const img = req.body.img;
 
-    db.query("UPDATE profil SET gender = ?, birthday = ?, height = ?, weight = ?, contraindication = ?, note = ?, image = ? WHERE id_user = {userId}",
-        [gender,birthday,height,weight,contraindication,note,img],
+    db.query("UPDATE profil SET gender = ?, birthday = ?, height = ?, weight = ?, contraindication = ?, note = ?, image = ? WHERE id_user = ?",
+        [gender,birthday,height,weight,contraindication,note,img,userId],
         (err, result) => {
             if (err) {
                 console.log(err);
