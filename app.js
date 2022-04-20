@@ -97,11 +97,11 @@ app.post("/DIPSS/training/create", (req, res) => {
     db.query(
         "INSERT INTO training (title, objectif, date, duration, validation, note) VALUES (?,?,?,?,0,?)",
         [title, objectif, date, duration, note],
-        (err, res) => {
+        (err, result) => {
             if(err){
                 console.log(err);
             }else{
-                res.send(res);
+                res.send(result);
             }
         }
     );
@@ -234,31 +234,31 @@ app.get('/DIPSS/profile', (req, res) => {
     });
 
 // -----------------------------------------------------UPDATE / PUT---------------------------------------------------
-app.put("/DIPSS/training/validation"), (req, res) => {
+app.put("/DIPSS/training/validation", (req, res) => {
     const id_training = req.body.id_training;
-    res.send("ok")
+    res.send("ok");
     db.query("UPDATE training SET validation = 1 WHERE id = ? ", id_training,
         (err, result) => {
             if (err) {
                 console.log(err);
             }else
-                res.send({ message: "Séance Valider" });
+                console.log(result);
         });
-};
+});
 
-app.put("/DIPSS/training/assign/user"), (req, res) => {
+app.put("/DIPSS/training/assign/user", (req, res) => {
     const id_training = req.body.id_training;
     const id_user = req.body.id_user;
-    res.send("ok")
+    res.send("ok");
 
     db.query("UPDATE training SET id_user = ? WHERE id = ? ", [id_user, id_training],
         (err, result) => {
             if (err) {
                 console.log(err);
             }else
-                res.send({ message: "Attribué !" });
+                console.log(res);
         });
-};
+});
 
 
 app.put("/DIPSS/profile/update", (req, res) => {
@@ -271,16 +271,14 @@ app.put("/DIPSS/profile/update", (req, res) => {
     const note = req.body.note;
     const img = req.body.img;
 
-    res.send('ok');
-
-
     db.query("UPDATE profil SET gender = ?, birthday = ?, height = ?, weight = ?, contraindication = ?, note = ?, image = ? WHERE id_user = ?",
         [gender,birthday,height,weight,contraindication,note,img,userId],
         (err, result) => {
             if (err) {
                 console.log(err);
-            }else
+            } else {
                 res.send(result);
+            }
         });
 });
 
