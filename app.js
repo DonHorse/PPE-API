@@ -85,6 +85,8 @@ app.post("/DIPSS/register", (req, res) => {
             }});
     });
 
+
+
 app.post("/DIPSS/training/create", (req, res) => {
     const title = req.body.title;
     const objectif = req.body.objectif;
@@ -193,6 +195,17 @@ app.get("/DIPSS/training-list", (req, res) => {
         })
 });
 
+app.get("/DIPSS/user-list", (req, res) => {
+    db.query("SELECT * FROM user ORDER BY last_name DESC",
+        (err, result) => {
+            if (err){
+                console.log(err);
+            }else {
+                res.send(result);
+            }
+        })
+});
+
 app.get("/DIPSS/login", (req, res) => {
     if (req.session.user) {
         res.send({ loggedIn: true, user: req.session.user });
@@ -221,6 +234,32 @@ app.get('/DIPSS/profile', (req, res) => {
     });
 
 // -----------------------------------------------------UPDATE / PUT---------------------------------------------------
+app.put("/DIPSS/training/validation"), (req, res) => {
+    const id_training = req.body.id_training;
+    res.send("ok")
+    db.query("UPDATE training SET validation = 1 WHERE id = ? ", id_training,
+        (err, result) => {
+            if (err) {
+                console.log(err);
+            }else
+                res.send({ message: "Séance Valider" });
+        });
+};
+
+app.put("/DIPSS/training/assign/user"), (req, res) => {
+    const id_training = req.body.id_training;
+    const id_user = req.body.id_user;
+    res.send("ok")
+
+    db.query("UPDATE training SET id_user = ? WHERE id = ? ", [id_user, id_training],
+        (err, result) => {
+            if (err) {
+                console.log(err);
+            }else
+                res.send({ message: "Attribué !" });
+        });
+};
+
 
 app.put("/DIPSS/profile/update", (req, res) => {
     const userId = req.session.user[0].id;
@@ -231,6 +270,8 @@ app.put("/DIPSS/profile/update", (req, res) => {
     const contraindication = req.body.contraindication;
     const note = req.body.note;
     const img = req.body.img;
+
+    res.send('ok');
 
 
     db.query("UPDATE profil SET gender = ?, birthday = ?, height = ?, weight = ?, contraindication = ?, note = ?, image = ? WHERE id_user = ?",
@@ -244,29 +285,8 @@ app.put("/DIPSS/profile/update", (req, res) => {
 });
 
 
-/* code pour mass change infos page:
-
-app.put("/api/homeModif", (req, res) => {
-    const bodyTitle = req.body.bodyTitle;
-    const body1 = req.body.body1;
-    const footer1 = req.body.footer1;
-    const footer2 = req.body.footer2;
-    const footer3 = req.body.footer3;
-
-
-    db.query("UPDATE info_page SET bodyTitle = ?, body1 = ?, footer1 = ?, footer2 = ?, footer3 = ? WHERE id = 1",
-        [bodyTitle, body1, footer1, footer2, footer3],
-        (err, result) => {
-        if (err) {
-            console.log(err);
-        }else
-            res.send(result);
-    });
-});
-*/
 
 // ----------------------------------------------------DELETE / DELETE-------------------------------------------------
-
 
 
 //END CRUD
