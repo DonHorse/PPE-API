@@ -9,6 +9,7 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
+const {DATETIME} = require("mysql/lib/protocol/constants/types");
 const saltRounds = 10;
 
 
@@ -84,6 +85,65 @@ app.post("/DIPSS/register", (req, res) => {
             }});
     });
 
+app.post("/DIPSS/training/create", (req, res) => {
+    const title = req.body.title;
+    const objectif = req.body.objectif;
+    const date = req.body.date;
+    const duration = req.body.duration;
+    const note = req.body.note;
+
+    db.query(
+        "INSERT INTO training (title, objectif, date, duration, validation, note) VALUES (?,?,?,?,0,?)",
+        [title, objectif, date, duration, note],
+        (err, res) => {
+            if(err){
+                console.log(err);
+            }else{
+                res.send(res);
+            }
+        }
+    );
+});
+
+app.post("/DIPSS/exercise/create", (req, res) => {
+    const title = req.body.title;
+    const type = req.body.type;
+    const image = req.body.image;
+    const description= req.body.description;
+
+    db.query(
+        "INSERT INTO exercise (title, type, image, description) VALUES (?,?,?,?)",
+        [title, type, image, description],
+        (err, resultat) => {
+            if (err) {
+                console.log(err);
+            }else{
+                res.send({ message: "Enregistré" });
+            }
+        }
+    );
+});
+
+app.post("/DIPSS/assignement/create", (req, res) => {
+    const repetitionNumber = req.body.repetitionNumber;
+    const weight = req.body.weight;
+    const resistance = req.body.resistance;
+    const distance = req.body.distance;
+    const duration = req.body.duration;
+    const rest = req.body.rest;
+
+    db.query(
+        "INSERT INTO exercise_assignment  (repetition_number, weight, resistance, distance, duration, rest) VALUES (?,?,?,?,?,?)",
+        [repetitionNumber, weight, resistance, distance, duration, rest],
+        (err, resultat) => {
+            if (err) {
+                console.log(err);
+            }else{
+                res.send({ message: "Enregistré" });
+            }
+        }
+    );
+});
 
 app.post("/DIPSS/login", (req, res) => {
     const email = req.body.email;
@@ -122,7 +182,16 @@ app.get("/", (req, res) => {
     res.send('Server started')
 });
 
-
+app.get("/DIPSS/training-list", (req, res) => {
+    db.query("SELECT * FROM training ORDER BY date DESC",
+        (err, result) => {
+            if (err){
+                console.log(err);
+            }else {
+                res.send(result);
+            }
+        })
+});
 
 app.get("/DIPSS/login", (req, res) => {
     if (req.session.user) {
@@ -162,6 +231,7 @@ app.put("/DIPSS/profile/update", (req, res) => {
     const contraindication = req.body.contraindication;
     const note = req.body.note;
     const img = req.body.img;
+
 
     db.query("UPDATE profil SET gender = ?, birthday = ?, height = ?, weight = ?, contraindication = ?, note = ?, image = ? WHERE id_user = ?",
         [gender,birthday,height,weight,contraindication,note,img,userId],
