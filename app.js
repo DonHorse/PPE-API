@@ -63,7 +63,7 @@ app.post("/DIPSS/register", (req, res) => {
             (err, result1) => {
             if (err) {
                 res.send({ message: "sql erreur" });
-            }if(result1.length != 0 ) {
+            }if(result1.length !== 0 ) {
                 console.log("doublon");
                 res.send({ message: "Utilisateur déjà enregistré" });
             }else{
@@ -75,7 +75,7 @@ app.post("/DIPSS/register", (req, res) => {
                     db.query(
                         "INSERT INTO user (first_name, last_name, email, password, role) VALUES (?,?,?,?,?)",
                         [firstname, lastname, email, hash, role],
-                        (err, resultat) => {
+                        (err) => {
                             console.log(err);
                             res.send({message : "L'utilisateur" + email + "est enregistré"})
                         }
@@ -115,7 +115,7 @@ app.post("/DIPSS/exercise/create", (req, res) => {
     db.query(
         "INSERT INTO exercise (title, type, image, description) VALUES (?,?,?,?)",
         [title, type, image, description],
-        (err, resultat) => {
+        (err) => {
             if (err) {
                 console.log(err);
             }else{
@@ -132,11 +132,12 @@ app.post("/DIPSS/assignement/create", (req, res) => {
     const distance = req.body.distance;
     const duration = req.body.duration;
     const rest = req.body.rest;
+    const idTraining = req.body.idTraining;
 
     db.query(
-        "INSERT INTO exercise_assignment  (repetition_number, weight, resistance, distance, duration, rest) VALUES (?,?,?,?,?,?)",
-        [repetitionNumber, weight, resistance, distance, duration, rest],
-        (err, resultat) => {
+        "INSERT INTO exercise_assignment  (repetition_number, weight, resistance, distance, duration, rest,id_training) VALUES (?,?,?,?,?,?,?)",
+        [repetitionNumber, weight, resistance, distance, duration, rest, idTraining],
+        (err) => {
             if (err) {
                 console.log(err);
             }else{
@@ -181,7 +182,7 @@ app.post("/DIPSS/training/assign/exercise", (req, res) => {
     const id_exercise = req.body.id_exercise;
 
     db.query("INSERT INTO training_exercise (id_training, id_exercise) VALUES (?,?) ", [id_training, id_exercise],
-        (err, result) => {
+        (err) => {
             if (err) {
                 console.log(err);
             }else
@@ -194,7 +195,7 @@ app.post("/DIPSS/exercise/assign/exerciseAssignment", (req, res) => {
     const id_exercise = req.body.id_exercise;
 
     db.query("INSERT INTO exercise_exercise_assignment (id_exercise_assignment, id_exercise) VALUES (?,?) ", [id_assignment, id_exercise],
-        (err, result) => {
+        (err) => {
             if (err) {
                 console.log(err);
             }else
@@ -210,10 +211,28 @@ app.get("/", (req, res) => {
 });
 
 app.get("/DIPSS/training-list/user", (req, res) => {
-
-    id_user = req.body.id_user;
-
+    const id_user = req.session.user[0].id;
     db.query("SELECT * FROM training WHERE id_user = ? ORDER BY date DESC",[id_user],
+        (err, result) => {
+            if (err){
+                console.log(err);
+            }else {
+                res.send(result);
+                console.log(result);
+                console.log(id_user);
+            }
+        })
+});
+
+
+
+app.get("/DIPSS/exercise-assignment-list/exercise-tr", (req, res) => {
+
+    id_exercise = req.body.id_exercise;
+    id_training = req.body.idTraining;
+
+    db.query("SELECT * FROM exercise_assignment LEFT JOIN exercise_exercise_assignment ON exercise_assignment.id=exercise_exercise_assignment.id_exercise_assignment WHERE exercise_exercise_assignment.id_exercise=? AND id_training = ?",
+        [id_exercise, id_training],
         (err, result) => {
             if (err){
                 console.log(err);
@@ -242,7 +261,7 @@ app.get("/DIPSS/exercise-list/training", (req, res) => {
 
     id_training = req.body.id_training;
 
-    db.query("SELECT * FROM exercise INNER JOIN training_exercise ON exercise.id=training_exercise.id_exercise WHERE training_exercise.id_training = ?",
+    db.query("SELECT * FROM exercise LEFT JOIN training_exercise ON exercise.id=training_exercise.id_exercise WHERE training_exercise.id_training = ?",
         [id_training],
         (err, result) => {
             if (err){
@@ -344,7 +363,7 @@ app.put("/DIPSS/training/assign/user", (req, res) => {
     const id_user = req.body.id_user;
 
     db.query("UPDATE training SET id_user = ? WHERE id = ? ", [id_user, id_training],
-        (err, result) => {
+        (err) => {
             if (err) {
                 console.log(err);
             }else
