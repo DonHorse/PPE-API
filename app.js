@@ -33,7 +33,7 @@ app.use(
         resave: false,
         saveUninitialized: false,
         cookie: {
-            expires: 60 * 60 * 24 * 7,
+            expires: 60 * 60 * 24 * 10,
         },
     })
 );
@@ -76,7 +76,7 @@ app.post("/DIPSS/register", (req, res) => {
                     db.query(
                         "INSERT INTO user (first_name, last_name, email, password, role) VALUES (?,?,?,?,?)",
                         [firstname, lastname, email, hash, role],
-                        (err, res) => {
+                        (err, resultat) => {
                             console.log(err);
                             res.send({message : "L'utilisateur" + email + "est enregistré"})
                         }
@@ -177,11 +177,81 @@ app.post("/DIPSS/login", (req, res) => {
     );
 });
 
+app.post("/DIPSS/training/assign/exercise", (req, res) => {
+    const id_training = req.body.id_training;
+    const id_exercise = req.body.id_exercise;
+
+    db.query("INSERT INTO training_exercise (id_training, id_exercise) VALUES (?,?) ", [id_training, id_exercise],
+        (err, result) => {
+            if (err) {
+                console.log(err);
+            }else
+                res.send({message : "Enregitré"});
+        });
+});
+
+app.post("/DIPSS/exercise/assign/exerciseAssignment", (req, res) => {
+    const id_assignment = req.body.id_assignment;
+    const id_exercise = req.body.id_exercise;
+
+    db.query("INSERT INTO exercise_exercise_assignment (id_exercise_assignment, id_exercise) VALUES (?,?) ", [id_assignment, id_exercise],
+        (err, result) => {
+            if (err) {
+                console.log(err);
+            }else
+                res.send({message : "Enregitré"});
+        });
+});
+
 
 
 // ------------------------------------------------------READ / GET----------------------------------------------------
 app.get("/", (req, res) => {
     res.send('Server started')
+});
+
+app.get("/DIPSS/training-list/user", (req, res) => {
+
+    id_user = req.body.id_user;
+
+    db.query("SELECT * FROM training WHERE id_user = ? ORDER BY date DESC",[id_user],
+        (err, result) => {
+            if (err){
+                console.log(err);
+            }else {
+                res.send(result);
+            }
+        })
+});
+
+app.get("/DIPSS/exercise-assignment-list/exercise", (req, res) => {
+
+    id_exercise = req.body.id_exercise;
+
+    db.query("SELECT * FROM exercise_assignment LEFT JOIN exercise_exercise_assignment ON exercise_assignment.id=exercise_exercise_assignment.id_exercise_assignment WHERE exercise_exercise_assignment.id_exercise=?",
+        [id_exercise],
+        (err, result) => {
+            if (err){
+                console.log(err);
+            }else {
+                res.send(result);
+            }
+        })
+});
+
+app.get("/DIPSS/exercise-list/training", (req, res) => {
+
+    id_training = req.body.id_training;
+
+    db.query("SELECT * FROM exercise INNER JOIN training_exercise ON exercise.id=training_exercise.id_exercise WHERE training_exercise.id_training = ?",
+        [id_training],
+        (err, result) => {
+            if (err){
+                console.log(err);
+            }else {
+                res.send(result);
+            }
+        })
 });
 
 app.get("/DIPSS/training-list", (req, res) => {
@@ -195,8 +265,30 @@ app.get("/DIPSS/training-list", (req, res) => {
         })
 });
 
+app.get("/DIPSS/exercise-list", (req, res) => {
+    db.query("SELECT * FROM exercise",
+        (err, result) => {
+            if (err){
+                console.log(err);
+            }else {
+                res.send(result);
+            }
+        })
+});
+
 app.get("/DIPSS/user-list", (req, res) => {
     db.query("SELECT * FROM user ORDER BY last_name DESC",
+        (err, result) => {
+            if (err){
+                console.log(err);
+            }else {
+                res.send(result);
+            }
+        })
+});
+
+app.get("/DIPSS/assignment-list", (req, res) => {
+    db.query("SELECT * FROM exercise_assignment",
         (err, result) => {
             if (err){
                 console.log(err);
@@ -246,10 +338,11 @@ app.put("/DIPSS/training/validation", (req, res) => {
         });
 });
 
+
+
 app.put("/DIPSS/training/assign/user", (req, res) => {
     const id_training = req.body.id_training;
     const id_user = req.body.id_user;
-    res.send("ok");
 
     db.query("UPDATE training SET id_user = ? WHERE id = ? ", [id_user, id_training],
         (err, result) => {
