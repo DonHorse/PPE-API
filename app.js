@@ -158,19 +158,17 @@ app.post("/DIPSS/login", (req, res) => {
             if (err) {
                 res.send({ err: err });
             }
-
-            if (result.length > 0) {
+            if (typeof(result) != "undefined" && result.length > 0) {
                 bcrypt.compare(password, result[0].password, (error, response) => {
                     if (response) {
                         req.session.user= result;
                         console.log(req.session.user);
                         res.send(result);
-
-                    } if (err) {
+                    } if (error) {
                         res.send({ message: "Mauvaise combinaison email/mot de passe" });
                     }
                 });
-            } else {
+            }else {
                 res.send({ message: "Adresse mail incorrect" });
             }
         }
