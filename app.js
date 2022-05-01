@@ -1,14 +1,14 @@
 // Page server, API, sert à faire le lien entre le front et le back : les requêtes sql et configurations de connexion sont ici
 
 // import des librairies
-const express = require("express");
+import express from "express";
 const app = express();
-const mysql = require("mysql");
-const cors = require("cors");
-const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
-const session = require("express-session");
-const bcrypt = require("bcrypt");
+import mysql from "mysql";
+import cors from "cors";
+import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
+import session from "express-session";
+import bcrypt from "bcrypt";
 const saltRounds = 10;
 
 
@@ -203,6 +203,39 @@ app.post("/DIPSS/exercise/assign/exerciseAssignment", (req, res) => {
         });
 });
 
+app.post("/DIPSS/exercise-list/training", (req, res) => {
+
+    const id_tr = req.body.id_tr;
+
+    db.query("SELECT * FROM exercise LEFT JOIN training_exercise ON exercise.id=training_exercise.id_exercise WHERE training_exercise.id_training = ?",
+        [id_tr],
+        (err, result) => {
+            if (err){
+                console.log(err);
+            }else {
+                console.log(result);
+                res.send(result);
+            }
+        })
+});
+
+app.post("/DIPSS/exercise-assignment-list/exercise-tr", (req, res) => {
+
+    const id_tr = req.body.id_tr;
+    const id_ex = req.body.id_ex;
+
+    console.log(id_tr,id_ex);
+    db.query("SELECT * FROM exercise_assignment LEFT JOIN exercise_exercise_assignment ON exercise_assignment.id=exercise_exercise_assignment.id_exercise_assignment WHERE exercise_exercise_assignment.id_exercise=? AND id_training = ? LIMIT 1",
+        [id_ex, id_tr],
+        (err, result) => {
+            if (err){
+                console.log(err);
+            }else {
+                res.send(result);
+                console.log(result);
+            }
+        })
+});
 
 
 // ------------------------------------------------------READ / GET----------------------------------------------------
@@ -218,33 +251,15 @@ app.get("/DIPSS/training-list/user", (req, res) => {
                 console.log(err);
             }else {
                 res.send(result);
-                console.log(result);
-                console.log(id_user);
+
             }
         })
 });
 
-
-
-app.get("/DIPSS/exercise-assignment-list/exercise-tr", (req, res) => {
-
-    id_exercise = req.body.id_exercise;
-    id_training = req.body.idTraining;
-
-    db.query("SELECT * FROM exercise_assignment LEFT JOIN exercise_exercise_assignment ON exercise_assignment.id=exercise_exercise_assignment.id_exercise_assignment WHERE exercise_exercise_assignment.id_exercise=? AND id_training = ?",
-        [id_exercise, id_training],
-        (err, result) => {
-            if (err){
-                console.log(err);
-            }else {
-                res.send(result);
-            }
-        })
-});
 
 app.get("/DIPSS/exercise-assignment-list/exercise", (req, res) => {
 
-    id_exercise = req.body.id_exercise;
+    const id_exercise = req.body.id_exercise;
 
     db.query("SELECT * FROM exercise_assignment LEFT JOIN exercise_exercise_assignment ON exercise_assignment.id=exercise_exercise_assignment.id_exercise_assignment WHERE exercise_exercise_assignment.id_exercise=?",
         [id_exercise],
@@ -257,20 +272,6 @@ app.get("/DIPSS/exercise-assignment-list/exercise", (req, res) => {
         })
 });
 
-app.get("/DIPSS/exercise-list/training", (req, res) => {
-
-    id_training = req.body.id_training;
-
-    db.query("SELECT * FROM exercise LEFT JOIN training_exercise ON exercise.id=training_exercise.id_exercise WHERE training_exercise.id_training = ?",
-        [id_training],
-        (err, result) => {
-            if (err){
-                console.log(err);
-            }else {
-                res.send(result);
-            }
-        })
-});
 
 app.get("/DIPSS/training-list", (req, res) => {
     db.query("SELECT * FROM training ORDER BY date DESC",
@@ -402,6 +403,6 @@ app.put("/DIPSS/profile/update", (req, res) => {
 
 
 //PORT SERVER API
-app.listen(3001, () => {
+export default app.listen(3001, () => {
     console.log("server on port 3001");
 });
